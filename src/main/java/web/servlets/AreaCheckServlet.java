@@ -18,6 +18,9 @@ import java.time.temporal.ChronoUnit;
 @WebServlet(name = "AreaCheckServlet", value = "/check")
 public class AreaCheckServlet extends HttpServlet {
     private static final String FORM_JSP = "/index.jsp";
+    //Path to the new results page.
+    private static final String RESULTS_JSP = "/results.jsp";
+
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -40,18 +43,19 @@ public class AreaCheckServlet extends HttpServlet {
             );
             ResultManager.saveResult(request.getSession(), newCalcResult);
 
-            // Set attributes for the View to display the result
-            request.setAttribute("latestResult", newCalcResult);
-            request.setAttribute("validationError", null); // Clear any previous errors
+            // On success, redirect to the results page.
+            response.sendRedirect(request.getContextPath() + RESULTS_JSP);
+            return; // Stop execution after redirect.
 
         } catch (ValidationException e) {
+            // On validation error, set the error message and forward back to the main form page.
             request.setAttribute("validationError", e.getMessage());
         } catch (Exception e) {
             System.err.println("Server error during calculation: " + e.getMessage());
             request.setAttribute("validationError", "Internal server error: " + e.getMessage());
         }
 
-        // Delegate back to the main JSP page to render the updated table and result
+        // Delegate back to the main JSP page to render the error message.
         getServletContext().getRequestDispatcher(FORM_JSP).forward(request, response);
     }
 

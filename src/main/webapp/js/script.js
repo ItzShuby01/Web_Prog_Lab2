@@ -5,7 +5,6 @@ const rParamInput = document.getElementById("r-param-input");
 const xParamInput = document.getElementById("x-param-input");
 const yParamInput = document.getElementById("y-param-input");
 const errorDisplay = document.getElementById("error");
-const clearResButton = document.getElementById("clear-results");
 const currentTimeSpan = document.getElementById("curr-time");
 
 const canvas = document.getElementById('graph');
@@ -14,7 +13,7 @@ const canvasWidth = canvas.width;
 const canvasHeight = canvas.height;
 
 const rButtonGroup = document.getElementById("r-button-group");
-const xButtonGroup = document.getElementById("x-button-group");
+const xRadioGroup = document.getElementById("x-radio-group");
 
 
 // Initialize state and points using data passed from the JSP (if available)
@@ -35,7 +34,6 @@ const toCanvasY = (y) => canvasHeight / 2 - y * referenceUnit;
 
 // Helper to manage button selection classes.
 function highlightButton(group, className, selectedButton) {
-    // Remove the selection class from ALL buttons in the group
     group.querySelectorAll(`.${className}`).forEach(btn => btn.classList.remove(className));
     // Apply the selection class to the single selected button
     if (selectedButton) {
@@ -186,13 +184,12 @@ const validationRules = {
     },
     x: {
         input: xParamInput,
-        hint: document.querySelector('.x-coord-label')?.nextElementSibling || errorDisplay,
-        // Only check the universal bounds [-3, 5], allowing floats from graph clicks
+        hint: document.querySelector('.x-coord-label').nextElementSibling,
         isValid: (val) => {
             const num = parseFloat(val);
-            // X value must be a valid number between -3 and 5
-            if (isNaN(num) || num < -3 || num > 5) {
-                return "X value is out of bounds (-3 to 5).";
+            const allowedXValues = [-3, -2, -1, 0, 1, 2, 3, 4, 5];
+            if (!allowedXValues.includes(num)) {
+                return "X must be one of the selected radio button values.";
             }
             return true;
         },
@@ -260,6 +257,7 @@ Object.keys(validationRules).forEach(key => {
 
 // R Button Group Listener
 rButtonGroup.addEventListener("click", (event) => {
+    errorDisplay.classList.remove('visible'); // Hide general error on interaction
     const button = event.target;
     if (button.classList.contains("r-button")) {
         highlightButton(rButtonGroup, 'selected-r', button);
@@ -273,26 +271,24 @@ rButtonGroup.addEventListener("click", (event) => {
     }
 });
 
-// X Button Group Listener
-if (xButtonGroup) {
-    xButtonGroup.addEventListener("click", (event) => {
-        const button = event.target;
-        if (button.classList.contains("x-button")) {
-            highlightButton(xButtonGroup, 'selected-x', button);
-
-            const xValue = button.getAttribute('data-x');
+// X Radio Button Group Listener
+if (xRadioGroup) {
+    xRadioGroup.addEventListener("change", (event) => {
+        errorDisplay.classList.remove('visible'); // Hide general error on interaction
+        const radio = event.target;
+        if (radio.classList.contains("x-radio")) {
+            const xValue = radio.getAttribute('data-x');
             xParamInput.value = xValue; // Update the hidden input
 
             validateInput("x", xValue);
             validationRules.x.updateState(xValue);
-            // Re-validate Y, as Y is often submitted with X
-            validateInput("y", yParamInput.value);
         }
     });
 }
 
 // Y Input Listener
 yParamInput.addEventListener("input", (event) => {
+    errorDisplay.classList.remove('visible'); // Hide general error on interaction
     validateInput("y", event.target.value);
     validationRules.y.updateState(event.target.value);
 });
@@ -300,7 +296,7 @@ yParamInput.addEventListener("input", (event) => {
 
 // FORM SUBMISSION
 form.addEventListener("submit", function (ev) {
-    // Client-side validation for all fields
+    // Client-side validation for all fields from the form
     const isRValid = validateInput("r", rParamInput.value);
     const isXValid = validateInput("x", xParamInput.value);
     const isYValid = validateInput("y", yParamInput.value);
@@ -308,7 +304,7 @@ form.addEventListener("submit", function (ev) {
     if (!isRValid || !isXValid || !isYValid) {
         ev.preventDefault();
         errorDisplay.textContent = "Please correct the input errors and ensure X/R are selected.";
-        errorDisplay.hidden = false;
+        errorDisplay.classList.add('visible');
         return;
     }
 });
@@ -316,15 +312,15 @@ form.addEventListener("submit", function (ev) {
 
 //GRAPH CLICK FUNCTIONALITY
 canvas.addEventListener('click', function(event) {
-    errorDisplay.hidden = true;
+    errorDisplay.classList.remove('visible');
 
-    // Check if R is set and valid
+    // First, check if R is set and valid from the form
     const rValue = rParamInput.value;
     const isRValid = validationRules.r.isValid(rValue) === true;
 
     if (!isRValid) {
         errorDisplay.textContent = "Please select a valid R value (1-5) before clicking the graph.";
-        errorDisplay.hidden = false;
+        errorDisplay.classList.add('visible');
         return;
     }
     const rNum = parseFloat(rValue);
@@ -341,24 +337,16 @@ canvas.addEventListener('click', function(event) {
     const xCoord = (clickX - centerX) / referenceUnit;
     const yCoord = (centerY - clickY) / referenceUnit;
 
-    // Round coordinates to 8 decimal places for clean submission
+    // Second validation method: check if clicked point is within canvas bounds [-5, 5]
+    if (xCoord < -5 || xCoord > 5 || yCoord < -5 || yCoord > 5) {
+        errorDisplay.textContent = `Clicked point (${xCoord.toFixed(2)}, ${yCoord.toFixed(2)}) is outside the acceptable canvas range of -5 to 5.`;
+        errorDisplay.classList.add('visible');
+        return;
+    }
+
+    // Round coordinates for clean submission
     const roundedX = xCoord.toFixed(8);
     const roundedY = yCoord.toFixed(8);
-
-    // Client-side validation on the clicked X and Y values
-    const isXClickValid = validationRules.x.isValid(roundedX) === true;
-    const isYClickValid = validationRules.y.isValid(roundedY) === true;
-
-    if (!isXClickValid) {
-        errorDisplay.textContent = `X coordinate (${roundedX}) is outside the acceptable range of -3 to 5.`;
-        errorDisplay.hidden = false;
-        return;
-    }
-    if (!isYClickValid) {
-        errorDisplay.textContent = `Y coordinate (${roundedY}) is outside the acceptable range of -3 to 5.`;
-        errorDisplay.hidden = false;
-        return;
-    }
 
     // Submit to server via GET request
     window.location.href = `controller?x=${roundedX}&y=${roundedY}&r=${rNum}`;
@@ -371,6 +359,4 @@ window.onload = () => {
 
     // Highlight the currently selected R button
     document.querySelector(`.r-button[data-r="${state.r.toFixed(1)}"]`)?.classList.add('selected-r');
-    // Highlight the currently selected X button
-    document.querySelector(`.x-button[data-x="${state.x.toFixed(1)}"]`)?.classList.add('selected-x');
 };

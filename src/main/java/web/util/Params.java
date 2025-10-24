@@ -1,5 +1,6 @@
 package web.util;
 
+import web.util.ValidationException;
 
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -52,8 +53,10 @@ public class Params {
 
         try {
             var xx = Float.parseFloat(x);
-            if (xx < -3 || xx > 5) {
-                throw new ValidationException("x has forbidden value (must be between -3 and 5)");
+            // Expanded range to [-5, 5] to accommodate canvas clicks.
+            // This single rule works for both form ([-3, 5]) and canvas clicks.
+            if (xx < -5 || xx > 5) {
+                throw new ValidationException("x has forbidden value (must be between -5 and 5)");
             }
         } catch (NumberFormatException e) {
             throw new ValidationException("x is not a number");
@@ -68,8 +71,9 @@ public class Params {
 
         try {
             var yy = Float.parseFloat(y);
-            if (yy < -3 || yy > 5) {
-                throw new ValidationException("y has forbidden value (must be between -3 and 5)");
+            // Expanded range to [-5, 5] to accommodate canvas clicks.
+            if (yy < -5 || yy > 5) {
+                throw new ValidationException("y has forbidden value (must be between -5 and 5)");
             }
         } catch (NumberFormatException e) {
             throw new ValidationException("y is not a number");

@@ -28,12 +28,11 @@ public class ControllerServlet extends HttpServlet {
         String clearResults = request.getParameter("clear_results");
 
         if ("true".equals(clearResults)) {
-            // If the clear button was pressed, clear the session and redirect back to prevent re-submission.
+            // If the clear button was pressed, clear the session results.
             ResultManager.clearAllResults(request.getSession());
 
-            // Redirect to the controller's base path, which will be index.jsp
-            // A GET redirect and prevents issues with request dispatching after clearing session data.
-            response.sendRedirect(request.getContextPath() + "/controller");
+            // Redirect directly to the main page after clearing.
+            response.sendRedirect(request.getContextPath() + FORM_JSP);
             return;
         }
 

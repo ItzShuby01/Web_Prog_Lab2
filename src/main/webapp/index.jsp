@@ -4,7 +4,7 @@
 <%@ page import="web.model.ResultManager" %>
 <%@ page import="java.util.List" %>
 <%
-    // Load all results from the HTTP Session
+    // Load all results from the HTTP Session for graph drawing
     List<CalculationResult> resultsList = ResultManager.getResults(request.getSession());
 
     // Check for a validation error set by the AreaCheckServlet
@@ -56,17 +56,21 @@
 
                     <div class="form-group">
                         <label class="x-coord-label">X Coordinate:</label>
-                        <div class="radio-group" id="x-button-group">
+                        <div class="radio-group" id="x-radio-group">
                             <%
                                 // X is Radio buttons {-3...5}
                                 for (int val = -3; val <= 5; val++) {
-                                    // Set '0' as the default selected button
-                                    String selectedClass = (val == 0) ? " selected-x" : "";
+                                    String checked = (val == 0) ? "checked" : "";
                             %>
-                                <input type="button"
-                                    class="x-button<%= selectedClass %>"
-                                    value="<%= val %>"
-                                    data-x="<%= val %>.0">
+                            <label class="radio-label">
+                                <input type="radio"
+                                       name="x_radio"
+                                       class="x-radio"
+                                       value="<%= val %>"
+                                       data-x="<%= val %>.0"
+                                        <%= checked %>>
+                                <%= val %>
+                            </label>
                             <% } %>
                         </div>
                         <%-- Hidden input to store the selected X value for submission --%>
@@ -83,7 +87,7 @@
 
                     <button id="form-btn" type="submit">Check Point</button>
                     <%-- Display server-side error from AreaCheckServlet --%>
-                    <p id="error" class="error-message" ${validationError.isEmpty() ? 'hidden' : ''}>
+                    <p id="error" class="error-message ${!validationError.isEmpty() ? 'visible' : ''}">
                         <%= validationError %>
                     </p>
                 </form>
@@ -93,20 +97,7 @@
                 <h3 class="live-info-header card-title">Live Data</h3>
                 <div class="live-info-details">
                     <p>Current Time: <span id="curr-time">Loading...</span></p>
-                    <%-- Execution time will be displayed by JavaScript from the server --%>
-                    <p>Execution Time: <span id="exec-time">Waiting...</span></p>
                 </div>
-
-                <%-- Output from AreaCheckServlet --%>
-                <c:if test="${latestResult != null}">
-                    <div class="latest-result-display">
-                        <h4>Latest Check:</h4>
-                        <p>X=${latestResult.x}, Y=${latestResult.y}, R=${latestResult.r}</p>
-                        <p>Result: <strong>${latestResult.hit ? 'HIT' : 'MISS'}</strong></p>
-                    </div>
-                    <%-- IMPORTANT: Link back to the form (this page) --%>
-                    <a href="controller">New Request</a>
-                </c:if>
             </div>
         </div>
 
@@ -114,50 +105,6 @@
             <div class="img-div card">
                 <h3 class="card-title">Graph</h3>
                 <canvas id="graph" width="400" height="400"></canvas>
-            </div>
-
-            <div class="results-div card">
-                <div class="results-div-header">
-                    <h3 class="results-header card-title">Results Table</h3>
-                    <%-- Specific action to clear results --%>
-                    <form action="controller" method="GET" style="display:inline;">
-                        <input type="hidden" name="clear_results" value="true" />
-                        <%-- REMOVED onclick="return confirm(...)" as it fails in the embedded environment --%>
-                        <button id="clear-results" type="submit">Clear Table</button>
-                    </form>
-                </div>
-                <div class="results-table-container">
-                    <%-- Table with previous results from HTTP Session --%>
-                    <table id="result-table">
-                        <thead>
-                        <tr>
-                            <th>R</th>
-                            <th>X</th>
-                            <th>Y</th>
-                            <th>Time</th>
-                            <th>Execution Time</th>
-                            <th>Result</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <%
-                            // The list is guaranteed to be non-null by ResultManager.getResults()
-                            for (CalculationResult res : resultsList) {
-                                double execTimeMs = res.getExecutionTimeNanos() / 1_000_000.0; // Convert nanos to ms for display
-                                String result = res.isHit() ? "Hit" : "Miss";
-                        %>
-                            <tr>
-                                <td><%= res.getR() %></td>
-                                <td><%= res.getX() %></td>
-                                <td><%= res.getY() %></td>
-                                <td><%= res.getTimestamp().toString() %></td>
-                                <td><%= String.format("%.2f ms", execTimeMs) %></td>
-                                <td><%= result %></td>
-                            </tr>
-                        <% } %>
-                        </tbody>
-                    </table>
-                </div>
             </div>
         </div>
     </div>
@@ -170,11 +117,11 @@
     // Initialize the points array using data from the session
     window.initialPoints = [];
     <% for (CalculationResult res : resultsList) { %>
-        window.initialPoints.push({
-            x: <%= res.getX() %>,
-            y: <%= res.getY() %>,
-            hit: <%= res.isHit() %>
-        });
+    window.initialPoints.push({
+        x: <%= res.getX() %>,
+        y: <%= res.getY() %>,
+        hit: <%= res.isHit() %>
+    });
     <% } %>
 
     // Set the initial R value from the input or default
