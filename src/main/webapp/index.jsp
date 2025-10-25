@@ -40,6 +40,8 @@
                 <form id="data-form" action="controller" method="GET">
                     <h3 class="form-header card-title">Parameters</h3>
 
+                    <input type="hidden" name="source" value="form">
+
                     <div class="form-group">
                         <label class="r-param-label">R Parameter:</label>
                         <%-- R is Radio buttons (1, 2, 3, 4, 5) --%>

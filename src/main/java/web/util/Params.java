@@ -16,21 +16,19 @@ public class Params {
     private final float r;
 
     private static final Set<Float> ALLOWED_R_VALUES = Set.of(1.0f, 2.0f, 3.0f, 4.0f, 5.0f);
+    //Define the specific allowed X values for a form submission
+    private static final Set<Float> ALLOWED_X_VALUES_FORM = Set.of(-3.0f, -2.0f, -1.0f, 0.0f, 1.0f, 2.0f, 3.0f, 4.0f, 5.0f);
 
 
 
-    public Params(String query) throws ValidationException {
-        if (query == null || query.isEmpty()) {
-            throw new ValidationException("Missing query string");
-        }
-        var params = splitQuery(query);
-        validateParams(params);
+    // Constructor now just parses, no validation.
+    public Params(Map<String, String> params) {
         this.x = Float.parseFloat(params.get("x"));
         this.y = Float.parseFloat(params.get("y"));
         this.r = Float.parseFloat(params.get("r"));
     }
 
-    private static Map<String, String> splitQuery(String query) {
+    public static Map<String, String> splitQuery(String query) {
         return Arrays.stream(query.split("&"))
                 .map(pair -> pair.split("="))
                 .collect(
@@ -44,55 +42,67 @@ public class Params {
     }
 
 
-    private static void validateParams(Map<String, String> params) throws ValidationException {
-        //X VALIDATION
-        var x = params.get("x");
-        if (x == null || x.isEmpty()) {
-            throw new ValidationException("x is invalid (missing)");
-        }
-
+    // Validation logic specifically for form submissions
+    public static void validateForm(Map<String, String> params) throws ValidationException {
+        // X VALIDATION (must be one of the allowed integers)
         try {
-            var xx = Float.parseFloat(x);
-            // Expanded range to [-5, 5] to accommodate canvas clicks.
-            // This single rule works for both form ([-3, 5]) and canvas clicks.
-            if (xx < -5 || xx > 5) {
-                throw new ValidationException("x has forbidden value (must be between -5 and 5)");
+            var x = Float.parseFloat(params.get("x"));
+            if (!ALLOWED_X_VALUES_FORM.contains(x)) {
+                throw new ValidationException("For form submissions, X must be one of the selected values.");
             }
-        } catch (NumberFormatException e) {
-            throw new ValidationException("x is not a number");
+        } catch (NullPointerException | NumberFormatException e) {
+            throw new ValidationException("X is not a valid number.");
         }
 
-
-        // Y VALIDATION
-        var y = params.get("y");
-        if (y == null || y.isEmpty()) {
-            throw new ValidationException("y is invalid (missing)");
-        }
-
+        // Y VALIDATION (must be between -3 and 5)
         try {
-            var yy = Float.parseFloat(y);
-            // Expanded range to [-5, 5] to accommodate canvas clicks.
-            if (yy < -5 || yy > 5) {
-                throw new ValidationException("y has forbidden value (must be between -5 and 5)");
+            var y = Float.parseFloat(params.get("y"));
+            if (y < -3 || y > 5) {
+                throw new ValidationException("For form submissions, Y must be between -3 and 5.");
             }
-        } catch (NumberFormatException e) {
-            throw new ValidationException("y is not a number");
+        } catch (NullPointerException | NumberFormatException e) {
+            throw new ValidationException("Y is not a valid number.");
         }
-
 
         // R VALIDATION
-        var r = params.get("r");
-        if (r == null || r.isEmpty()) {
-            throw new ValidationException("r is invalid (missing)");
+        validateR(params);
+    }
+
+    //Validation logic for canvas clicks
+    public static void validateCanvas(Map<String, String> params) throws ValidationException {
+        // X VALIDATION (must be between -5 and 5)
+        try {
+            var x = Float.parseFloat(params.get("x"));
+            if (x < -5 || x > 5) {
+                throw new ValidationException("For canvas clicks, X must be between -5 and 5.");
+            }
+        } catch (NullPointerException | NumberFormatException e) {
+            throw new ValidationException("X is not a valid number.");
         }
 
+        // Y VALIDATION (must be between -5 and 5)
         try {
-            var rr = Float.parseFloat(r);
-            if (!ALLOWED_R_VALUES.contains(rr)) {
-                throw new ValidationException("r has forbidden value (must be one of 1, 2, 3, 4, 5)");
+            var y = Float.parseFloat(params.get("y"));
+            if (y < -5 || y > 5) {
+                throw new ValidationException("For canvas clicks, Y must be between -5 and 5.");
             }
-        } catch (NumberFormatException e) {
-            throw new ValidationException("r is not a number");
+        } catch (NullPointerException | NumberFormatException e) {
+            throw new ValidationException("Y is not a valid number.");
+        }
+
+        // R VALIDATION
+        validateR(params);
+    }
+
+    // Helper method for R validation.
+    private static void validateR(Map<String, String> params) throws ValidationException {
+        try {
+            var r = Float.parseFloat(params.get("r"));
+            if (!ALLOWED_R_VALUES.contains(r)) {
+                throw new ValidationException("R has a forbidden value (must be one of 1, 2, 3, 4, 5)");
+            }
+        } catch (NullPointerException | NumberFormatException e) {
+            throw new ValidationException("R is not a valid number.");
         }
     }
 

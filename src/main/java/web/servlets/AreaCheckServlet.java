@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Map;
 
 @WebServlet(name = "AreaCheckServlet", value = "/check")
 public class AreaCheckServlet extends HttpServlet {
@@ -25,9 +26,22 @@ public class AreaCheckServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         try {
-            // Validation and Parsing
+            //Parse the query into a map of parameters
             String query = request.getQueryString();
-            Params params = new Params(query);
+            Map<String, String> paramsMap = Params.splitQuery(query);
+
+            //Choose validation strategy based on the 'source' parameter
+            String source = paramsMap.get("source");
+            if ("form".equals(source)) {
+                // If 'source' is 'form', use the form validation
+                Params.validateForm(paramsMap);
+            } else {
+                // for canvas clicks, use the canvas validation
+                Params.validateCanvas(paramsMap);
+            }
+
+            // If validation passes, create the Params object
+            Params params = new Params(paramsMap);
 
             // Calculation
             var startTime = Instant.now();
@@ -55,7 +69,7 @@ public class AreaCheckServlet extends HttpServlet {
             request.setAttribute("validationError", "Internal server error: " + e.getMessage());
         }
 
-        // Delegate back to the main JSP page to render the error message.
+        // This line is only reached if an exception was caught.
         getServletContext().getRequestDispatcher(FORM_JSP).forward(request, response);
     }
 
