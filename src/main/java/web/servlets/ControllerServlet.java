@@ -40,9 +40,11 @@ public class ControllerServlet extends HttpServlet {
 
 
         // Check for calculation request (form submission or graph click)
+        String xParam = request.getParameter("x");
+        String yParam = request.getParameter("y");
         String rParam = request.getParameter("r");
 
-        if (rParam != null && !rParam.isEmpty()) {
+        if (xParam != null && yParam != null && rParam != null) {
             // Request contains coordinates -> Delegate to the AreaCheckServlet.
             getServletContext().getRequestDispatcher(AREA_CHECK_SERVLET).forward(request, response);
         } else {
