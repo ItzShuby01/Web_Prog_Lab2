@@ -3,18 +3,7 @@
 <%@ page import="web.model.CalculationResult" %>
 <%@ page import="web.model.ResultManager" %>
 <%@ page import="java.util.List" %>
-<%
-    // Load all results from the HTTP Session for graph drawing
-    List<CalculationResult> resultsList = ResultManager.getResults(request.getSession());
 
-    // Check for a validation error set by the AreaCheckServlet
-    String validationError = (String) request.getAttribute("validationError");
-    if (validationError == null) {
-        validationError = "";
-    }
-
-    request.setAttribute("resultsList", resultsList);
-%>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -89,8 +78,8 @@
 
                     <button id="form-btn" type="submit">Check Point</button>
                     <%-- Display server-side error from AreaCheckServlet --%>
-                    <p id="error" class="error-message ${!validationError.isEmpty() ? 'visible' : ''}">
-                        <%= validationError %>
+                    <p id="error" class="error-message ${!empty validationError ? 'visible' : ''}">
+                        ${validationError}
                     </p>
                 </form>
             </div>
@@ -117,14 +106,14 @@
 <%-- Pass session data to JavaScript for graph drawing --%>
 <script>
     // Initialize the points array using data from the session
-    window.initialPoints = [];
-    <% for (CalculationResult res : resultsList) { %>
-    window.initialPoints.push({
-        x: <%= res.x() %>,
-        y: <%= res.y() %>,
-        hit: <%= res.hit() %>
-    });
-    <% } %>
+   window.initialPoints = [];
+       <c:forEach var="res" items="${resultsList}">
+           window.initialPoints.push({
+               x: ${res.x()}, // Using record-style accessors
+               y: ${res.y()},
+               hit: ${res.hit()}
+           });
+       </c:forEach>
 
     // Set the initial R value from the input or default
     window.initialR = parseFloat(document.getElementById('r-param-input').value);

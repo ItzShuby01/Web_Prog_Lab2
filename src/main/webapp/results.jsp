@@ -1,13 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
-<%@ page import="web.model.CalculationResult" %>
-<%@ page import="web.model.ResultManager" %>
-<%@ page import="java.util.List" %>
-<%
-    // Load all results from the HTTP Session
-    List<CalculationResult> resultsList = ResultManager.getResults(request.getSession());
-    request.setAttribute("resultsList", resultsList);
-%>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -37,7 +31,6 @@
                 </form>
             </div>
             <div class="results-table-container">
-                <%-- Table with previous results from HTTP Session --%>
                 <table id="result-table">
                     <thead>
                     <tr>
@@ -50,28 +43,28 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <%
-                        // The list is guaranteed to be non-null by ResultManager.getResults()
-                        for (CalculationResult res : resultsList) {
-                            double execTimeMs = res.executionTimeNanos() / 1_000_000.0; // Convert nanos to ms for display
-                            String result = res.hit() ? "Hit" : "Miss";
-                    %>
-                    <tr>
-                        <td><%= res.r() %></td>
-                        <td><%= res.x() %></td>
-                        <td><%= res.y() %></td>
-                        <td><%= res.timestamp().toString() %></td>
-                        <td><%= String.format("%.2f ms", execTimeMs) %></td>
-                        <td><%= result %></td>
-                    </tr>
-                    <% } %>
+                        <%-- The clean way to loop using JSTL --%>
+                        <c:forEach var="res" items="${resultsList}">
+                            <tr>
+                                <td>${res.r()}</td>
+                                <td>${res.x()}</td>
+                                <td>${res.y()}</td>
+                                <td>${res.timestamp()}</td>
+                                <td>
+                                    <%-- Format the number for clean display --%>
+                                    <fmt:formatNumber value="${res.executionTimeNanos() / 1000000.0}" maxFractionDigits="2" /> ms
+                                </td>
+                                <td>${res.hit() ? 'Hit' : 'Miss'}</td>
+                            </tr>
+                        </c:forEach>
                     </tbody>
                 </table>
             </div>
         </div>
 
         <div class="navigation-card card">
-            <a href="index.jsp" class="go-back-link">
+            <%-- The ControllerServlet prepares the index page --%>
+            <a href="controller" class="go-back-link">
                 <button id="go-back-btn">Go Back</button>
             </a>
         </div>

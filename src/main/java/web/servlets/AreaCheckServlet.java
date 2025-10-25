@@ -58,7 +58,7 @@ public class AreaCheckServlet extends HttpServlet {
             ResultManager.saveResult(request.getSession(), newCalcResult);
 
             // On success, redirect to the results page.
-            response.sendRedirect(request.getContextPath() + RESULTS_JSP);
+            response.sendRedirect(request.getContextPath() + "/results");
             return; // Stop execution after redirect.
 
         } catch (ValidationException e) {

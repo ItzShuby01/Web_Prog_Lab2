@@ -5,8 +5,10 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import web.model.CalculationResult;
 import web.model.ResultManager;
 import java.io.IOException;
+import java.util.List;
 
 @WebServlet(name = "ControllerServlet", value = "/controller")
 public class ControllerServlet extends HttpServlet {
@@ -44,7 +46,15 @@ public class ControllerServlet extends HttpServlet {
             // Request contains coordinates -> Delegate to the AreaCheckServlet.
             getServletContext().getRequestDispatcher(AREA_CHECK_SERVLET).forward(request, response);
         } else {
-            // Request does NOT contain coordinates -> Delegate to the JSP form.
+            //KEY: Now  Request does NOT contain coordinates
+
+            // Get the list of previous results from the session.
+            List<CalculationResult> resultsList = ResultManager.getResults(request.getSession());
+
+            // Set the list as a request attribute so the JSP can access it.
+            request.setAttribute("resultsList", resultsList);
+
+            // Forward to the JSP page. This is now just a simple view.
             getServletContext().getRequestDispatcher(FORM_JSP).forward(request, response);
         }
     }
