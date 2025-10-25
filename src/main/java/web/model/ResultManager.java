@@ -2,7 +2,6 @@ package web.model;
 
 import jakarta.servlet.http.HttpSession;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;

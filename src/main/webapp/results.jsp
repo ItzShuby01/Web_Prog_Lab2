@@ -53,14 +53,14 @@
                     <%
                         // The list is guaranteed to be non-null by ResultManager.getResults()
                         for (CalculationResult res : resultsList) {
-                            double execTimeMs = res.getExecutionTimeNanos() / 1_000_000.0; // Convert nanos to ms for display
-                            String result = res.isHit() ? "Hit" : "Miss";
+                            double execTimeMs = res.executionTimeNanos() / 1_000_000.0; // Convert nanos to ms for display
+                            String result = res.hit() ? "Hit" : "Miss";
                     %>
                     <tr>
-                        <td><%= res.getR() %></td>
-                        <td><%= res.getX() %></td>
-                        <td><%= res.getY() %></td>
-                        <td><%= res.getTimestamp().toString() %></td>
+                        <td><%= res.r() %></td>
+                        <td><%= res.x() %></td>
+                        <td><%= res.y() %></td>
+                        <td><%= res.timestamp().toString() %></td>
                         <td><%= String.format("%.2f ms", execTimeMs) %></td>
                         <td><%= result %></td>
                     </tr>

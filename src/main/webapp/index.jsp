@@ -118,9 +118,9 @@
     window.initialPoints = [];
     <% for (CalculationResult res : resultsList) { %>
     window.initialPoints.push({
-        x: <%= res.getX() %>,
-        y: <%= res.getY() %>,
-        hit: <%= res.isHit() %>
+        x: <%= res.x() %>,
+        y: <%= res.y() %>,
+        hit: <%= res.hit() %>
     });
     <% } %>
 
