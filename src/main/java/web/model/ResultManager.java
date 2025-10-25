@@ -8,7 +8,7 @@ import java.util.Collections;
 import java.util.List;
 
 // Key used to store the results list in the session
-public class ResultManager implements Serializable {
+public class ResultManager {
     private static final String RESULTS_ATTRIBUTE = "pastResults";
 
     // Public API to get the current list of results from the session
