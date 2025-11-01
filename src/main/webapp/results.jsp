@@ -7,7 +7,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Results - Web Programming Lab 2</title>
+    <title>Current Result - Web Programming Lab 2</title>
     <link rel="stylesheet" href="css/style.css" />
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
@@ -23,12 +23,7 @@
     <div class="results-page-container">
         <div class="results-div card">
             <div class="results-div-header">
-                <h3 class="results-header card-title">Results Table</h3>
-                <%-- Specific action to clear results --%>
-                <form action="controller" method="GET" style="display:inline;">
-                    <input type="hidden" name="clear_results" value="true" />
-                    <button id="clear-results" type="submit">Clear Table</button>
-                </form>
+                <h3 class="results-header card-title">Current Calculation Result</h3>
             </div>
             <div class="results-table-container">
                 <table id="result-table">
@@ -43,20 +38,26 @@
                     </tr>
                     </thead>
                     <tbody>
-                        <%-- The clean way to loop using JSTL --%>
-                        <c:forEach var="res" items="${resultsList}">
-                            <tr>
-                                <td>${res.r()}</td>
-                                <td>${res.x()}</td>
-                                <td>${res.y()}</td>
-                                <td>${res.timestamp()}</td>
-                                <td>
-                                    <%-- Format the number for clean display --%>
-                                    <fmt:formatNumber value="${res.executionTimeNanos() / 1000000.0}" maxFractionDigits="2" /> ms
-                                </td>
-                                <td>${res.hit() ? 'Hit' : 'Miss'}</td>
-                            </tr>
-                        </c:forEach>
+                        <c:choose>
+                            <c:when test="${not empty currentResult}">
+                                <tr>
+                                    <td>${currentResult.r()}</td>
+                                    <td>${currentResult.x()}</td>
+                                    <td>${currentResult.y()}</td>
+                                    <td>${currentResult.timestamp()}</td>
+                                    <td>
+                                        <%-- Format the number for clean display --%>
+                                        <fmt:formatNumber value="${currentResult.executionTimeNanos() / 1000000.0}" maxFractionDigits="2" /> ms
+                                    </td>
+                                    <td>${currentResult.hit() ? 'Hit' : 'Miss'}</td>
+                                </tr>
+                            </c:when>
+                            <c:otherwise>
+                                <tr>
+                                    <td colspan="6">No current result to display.</td>
+                                </tr>
+                            </c:otherwise>
+                        </c:choose>
                     </tbody>
                 </table>
             </div>
@@ -65,7 +66,7 @@
         <div class="navigation-card card">
             <%-- The ControllerServlet prepares the index page --%>
             <a href="controller" class="go-back-link">
-                <button id="go-back-btn">Go Back</button>
+                <button id="go-back-btn">Go Back to Main Page</button>
             </a>
         </div>
     </div>

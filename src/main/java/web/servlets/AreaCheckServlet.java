@@ -13,13 +13,12 @@ import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Map;
 
 @WebServlet(name = "AreaCheckServlet", value = "/check")
 public class AreaCheckServlet extends HttpServlet {
     private static final String FORM_JSP = "/index.jsp";
-    //Path to the new results servlet.
-    private static final String RESULTS_SERVLET = "/results";
 
 
     @Override
@@ -56,8 +55,12 @@ public class AreaCheckServlet extends HttpServlet {
             );
             ResultManager.saveResult(request.getSession(), newCalcResult);
 
-            // On success, redirect to the results page.
-            response.sendRedirect(request.getContextPath() + RESULTS_SERVLET);
+            // Store the current result in request scope for results.jsp
+            request.getSession().setAttribute("currentResult", newCalcResult);
+
+            //Forward to the results.jsp page -> shows only the current result -> user clicks "Go Back" to index.jsp.
+            getServletContext().getRequestDispatcher("/results.jsp").forward(request, response);
+
             return; // Stop execution after redirect.
 
         } catch (ValidationException e) {
@@ -68,7 +71,9 @@ public class AreaCheckServlet extends HttpServlet {
             request.setAttribute("validationError", "Internal server error: " + e.getMessage());
         }
 
-        // This line is only reached if an exception was caught.
+        // Load the resultsList for index.jsp before forwarding.
+        List<CalculationResult> resultsList = ResultManager.getResults(request.getSession());
+        request.setAttribute("resultsList", resultsList);
         getServletContext().getRequestDispatcher(FORM_JSP).forward(request, response);
     }
 

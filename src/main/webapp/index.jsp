@@ -1,5 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ page import="web.model.CalculationResult" %>
 <%@ page import="web.model.ResultManager" %>
 <%@ page import="java.util.List" %>
@@ -30,7 +31,7 @@
 
                 <div class="form-group">
                     <label class="r-param-label">R Parameter:</label>
-                    <%-- R is now standard Radio buttons (1, 2, 3, 4, 5) --%>
+                    <%-- R is standard Radio buttons (1, 2, 3, 4, 5) --%>
                     <div class="radio-group" id="r-radio-group">
                         <%
                             // Iterate over the R values
@@ -101,6 +102,48 @@
         <div class="img-div card">
             <h3 class="card-title">Graph</h3>
             <canvas id="graph" width="400" height="400"></canvas>
+        </div>
+
+        <%-- RESULTS TABLE AND CLEAR BUTTON --%>
+        <div class="results-div card">
+            <div class="results-div-header">
+                <h3 class="results-header card-title">Results Table</h3>
+                <%-- Specific action to clear results, points to the ControllerServlet --%>
+                <form action="controller" method="GET" style="display:inline;">
+                    <input type="hidden" name="clear_results" value="true" />
+                    <button id="clear-results" type="submit">Clear Table</button>
+                </form>
+            </div>
+            <div class="results-table-container">
+                <table id="result-table">
+                    <thead>
+                    <tr>
+                        <th>R</th>
+                        <th>X</th>
+                        <th>Y</th>
+                        <th>Time</th>
+                        <th>Execution Time</th>
+                        <th>Result</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                        <%-- Loop through the session resultsList to populate the table --%>
+                        <c:forEach var="res" items="${resultsList}">
+                            <tr>
+                                <td>${res.r()}</td>
+                                <td>${res.x()}</td>
+                                <td>${res.y()}</td>
+                                <td>${res.timestamp()}</td>
+                                <td>
+                                    <%-- Format the number for clean display --%>
+                                    <fmt:formatNumber value="${res.executionTimeNanos() / 1000000.0}" maxFractionDigits="2" /> ms
+                                </td>
+                                <td>${res.hit() ? 'Hit' : 'Miss'}</td>
+                            </tr>
+                        </c:forEach>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
