@@ -134,40 +134,36 @@ input[type="text"]:focus {
     outline: none;
 }
 
+/* --- Radio Group Styling (Default style) --- */
+
 .radio-group {
     display: flex;
     flex-wrap: wrap;
-    gap: 1.2rem;
+    gap: 1.5rem; /* For spacing between options */
     margin-top: 1rem;
+    align-items: center;
 }
 
+/* Radio buttons and their labels should show the default radio look */
 .radio-group input[type="radio"] {
-    display: none;
+    /* Keep default radio appearance */
+    width: 1.6rem;
+    height: 1.6rem;
+    margin: 0;
 }
 
-.radio-group label {
-    display: inline-block;
-    padding: 1rem 2rem;
-    border: 0.1rem solid #4b5563;
-    border-radius: 2.5rem;
-    background-color: #374151;
-    color: #a0a0a0;
-    font-size: 1.6rem;
-    cursor: pointer;
-    transition: all 0.2s ease-in-out;
-    margin-bottom: 0;
+.radio-group .radio-label {
+    display: flex; /* Aligns the radio button and text */
+    align-items: center;
+    gap: 0.5rem; /* Space between radio and text */
+    font-size: 1.7rem;
     font-weight: 500;
-}
-
-.radio-group input[type="radio"]:checked + label {
-    background-color: #f97316;
-    border-color: #f97316;
-    color: #1f2937;
-    font-weight: 600;
-}
-
-.radio-group label:hover {
-    background-color: #4b5563;
+    color: #f3f4f6; /* Text color for options */
+    cursor: pointer;
+    margin-bottom: 0;
+    padding: 0;
+    border: none;
+    background: none;
 }
 
 
@@ -227,70 +223,6 @@ input[type="text"]:focus {
 
 #form-btn:hover {
     background-color: #ea580c;
-}
-
-/* --- R Button Styles --- */
-
-.r-button {
-    background-color: #374151;
-    color: #f3f4f6; /* Light text */
-    border: 0.1rem solid #4b5563;
-    padding: 1rem 2rem;
-    border-radius: 2.5rem; /* Match radio label style */
-    font-size: 1.6rem;
-    cursor: pointer;
-    transition: all 0.2s ease-in-out;
-    margin-bottom: 0;
-    font-weight: 500;
-    /* Reset button defaults */
-    display: inline-block;
-    text-align: center;
-    text-decoration: none;
-}
-
-.r-button:hover {
-    background-color: #4b5563; /* Match radio label hover */
-}
-
-.r-button.selected-r {
-    /* Visual state for the actively selected R value */
-    background-color: #f97316; /* Vibrant orange */
-    border-color: #f97316;
-    color: #1f2937; /* Dark text */
-    font-weight: 600;
-    box-shadow: 0 0 1.5rem rgba(249, 115, 22, 0.4); /* Soft glow */
-}
-
-/* --- X Button Styles  --- */
-
-.x-button {
-    /* Base styling to make buttons look separate from radio labels */
-    background-color: #374151;
-    color: #f3f4f6;
-    border: 0.1rem solid #4b5563;
-    padding: 1rem 2rem;
-    border-radius: 2.5rem;
-    font-size: 1.6rem;
-    cursor: pointer;
-    transition: all 0.2s ease-in-out;
-    margin-bottom: 0;
-    font-weight: 500;
-    display: inline-block;
-    text-align: center;
-    text-decoration: none;
-}
-
-.x-button:hover {
-    background-color: #4b5563;
-}
-
-.x-button.selected-x {
-    /* Visual state for the actively selected X value */
-    background-color: #f97316;
-    border-color: #f97316;
-    color: #1f2937;
-    font-weight: 600;
-    box-shadow: 0 0 1.5rem rgba(249, 115, 22, 0.4);
 }
 
 /* --- Live Information and Canvas --- */

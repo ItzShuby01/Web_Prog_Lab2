@@ -1,8 +1,6 @@
 "use strict";
 
 const form = document.getElementById("data-form");
-const rParamInput = document.getElementById("r-param-input");
-const xParamInput = document.getElementById("x-param-input");
 const yParamInput = document.getElementById("y-param-input");
 const errorDisplay = document.getElementById("error");
 const currentTimeSpan = document.getElementById("curr-time");
@@ -12,36 +10,31 @@ const ctx = canvas.getContext('2d');
 const canvasWidth = canvas.width;
 const canvasHeight = canvas.height;
 
-const rButtonGroup = document.getElementById("r-button-group");
+// Select the actual radio groups
+const rRadioGroup = document.getElementById("r-radio-group");
 const xRadioGroup = document.getElementById("x-radio-group");
 
+// Function to get the value of the currently checked radio button in a group
+const getRadioValue = (name) => {
+    const radio = document.querySelector(`input[name="${name}"]:checked`);
+    return radio ? radio.value : null;
+};
 
-// Initialize state and points using data passed from the JSP (if available)
+// Initialize state and points using data passed from the JSP (window.initialR is set based on the CHECKED radio button)
 let state = {
-    // Read initial values from hidden inputs
-    x: parseFloat(xParamInput.value) || 0,
-    y: 0,
-    r: parseFloat(rParamInput.value) || 2.0
+    // Read initial values from the currently checked radio buttons or fall back
+    x: parseFloat(getRadioValue('x')) || 0.0,
+    y: parseFloat(yParamInput.value) || 0.0,
+    r: window.initialR || 2.0 // Read from the value set in JSP script block
 };
 let points = window.initialPoints || [];
 
 
-
+//--- CANVAS ---
 //Used a fixed reference of 5 units = half the canvas width/height (200px for 400x400)
 const referenceUnit = canvasWidth / 10;
 const toCanvasX = (x) => canvasWidth / 2 + x * referenceUnit;
 const toCanvasY = (y) => canvasHeight / 2 - y * referenceUnit;
-
-// Helper to manage button selection classes.
-function highlightButton(group, className, selectedButton) {
-    group.querySelectorAll(`.${className}`).forEach(btn => btn.classList.remove(className));
-    // Apply the selection class to the single selected button
-    if (selectedButton) {
-        selectedButton.classList.add(className);
-    }
-}
-
-
 
 // Draws a single point on the canvas.
 function drawPoint(x, y, hit) {
@@ -158,23 +151,23 @@ function drawGraph(r) {
 }
 
 
-//INITIAL SETUP AND TIME
+//--- INITIAL SETUP AND TIME ---
 function updateCurrentTime() {
     currentTimeSpan.textContent = new Date().toLocaleString();
 }
 setInterval(updateCurrentTime, 1000);
 updateCurrentTime();
 
-// VALIDATION RULES
+
+//--- VALIDATION RULES ---
 const validationRules = {
+    // R is a standard radio input
     r: {
-        input: rParamInput,
-        hint: rParamInput.nextElementSibling,
         isValid: (val) => {
             const num = parseFloat(val);
             const allowedRValues = [1, 2, 3, 4, 5];
-            if (!allowedRValues.includes(num)) {
-                return `Value must be one of: ${allowedRValues.join(", ")}.`;
+            if (isNaN(num) || !allowedRValues.includes(num)) {
+                return `R value must be one of: ${allowedRValues.join(", ")}.`;
             }
             return true;
         },
@@ -182,13 +175,12 @@ const validationRules = {
             state.r = parseFloat(val);
         }
     },
+    // X is a standard radio input
     x: {
-        input: xParamInput,
-        hint: document.querySelector('.x-coord-label').nextElementSibling,
         isValid: (val) => {
             const num = parseFloat(val);
             const allowedXValues = [-3, -2, -1, 0, 1, 2, 3, 4, 5];
-            if (!allowedXValues.includes(num)) {
+            if (isNaN(num) || !allowedXValues.includes(num)) {
                 return "X must be one of the selected radio button values.";
             }
             return true;
@@ -221,70 +213,53 @@ const validationRules = {
 // Executes validation and updates UI for hints/errors.
 function validateInput(inputName, value) {
     const rule = validationRules[inputName];
-    const hint = rule.hint;
 
     const validationResult = rule.isValid(value);
 
-    // Hide all hints initially for cleaner display
-    if (hint) hint.style.visibility = "hidden";
+    // Y   visible hint element in the immediate vicinity
+    if (inputName === 'y') {
+        const hint = rule.hint;
+        hint.classList.remove("error");
+        hint.textContent = validationRules.y.input.getAttribute("data-original-hint");
+        hint.style.visibility = "visible";
 
-    if (validationResult === true) {
-        rule.input.classList.remove("invalid");
-        return true;
-    } else {
-        if (hint) {
+        if (validationResult === true) {
+            rule.input.classList.remove("invalid");
+            return true;
+        } else {
             hint.textContent = validationResult;
-            hint.style.visibility = "visible";
             hint.classList.add("error");
+            rule.input.classList.add("invalid");
+            return false;
         }
-        rule.input.classList.add("invalid");
-        return false;
+    } else {
+        // For R and X, error handling relies on form submit for radio buttons
+        return validationResult === true;
     }
 }
 
-// Initial state and validation
-Object.keys(validationRules).forEach(key => {
-    const rule = validationRules[key];
-    rule.updateState(rule.input.value);
-    // Ensure hidden inputs start without invalid class
-    if (key === 'r' || key === 'x') {
-        rule.input.classList.remove("invalid");
-    }
-});
+// Initial Y setup
+yParamInput.setAttribute("data-original-hint", yParamInput.nextElementSibling.textContent);
+validateInput("y", yParamInput.value);
+validationRules.y.updateState(yParamInput.value);
 
 
-//EVENT LISTENERS
+//--- EVENT LISTENERS ---
 
-// R Button Group Listener
-rButtonGroup.addEventListener("click", (event) => {
+// R Radio Group Listener: Only updates the graph when R changes
+rRadioGroup.addEventListener("change", () => {
     errorDisplay.classList.remove('visible'); // Hide general error on interaction
-    const button = event.target;
-    if (button.classList.contains("r-button")) {
-        highlightButton(rButtonGroup, 'selected-r', button);
-
-        const rValue = button.getAttribute('data-r');
-        rParamInput.value = rValue;
-
-        validateInput("r", rValue);
+    const rValue = getRadioValue('r');
+    if (rValue && validateInput("r", rValue)) {
         validationRules.r.updateState(rValue);
         drawGraph(state.r);
     }
 });
 
-// X Radio Button Group Listener
-if (xRadioGroup) {
-    xRadioGroup.addEventListener("change", (event) => {
-        errorDisplay.classList.remove('visible'); // Hide general error on interaction
-        const radio = event.target;
-        if (radio.classList.contains("x-radio")) {
-            const xValue = radio.getAttribute('data-x');
-            xParamInput.value = xValue; // Update the hidden input
-
-            validateInput("x", xValue);
-            validationRules.x.updateState(xValue);
-        }
-    });
-}
+// X Radio Group Listener
+xRadioGroup.addEventListener("change", () => {
+    errorDisplay.classList.remove('visible'); // Hide general error on interaction
+});
 
 // Y Input Listener
 yParamInput.addEventListener("input", (event) => {
@@ -294,28 +269,39 @@ yParamInput.addEventListener("input", (event) => {
 });
 
 
-// FORM SUBMISSION
+//--- FORM SUBMISSION ---
 form.addEventListener("submit", function (ev) {
-    // Client-side validation for all fields from the form
-    const isRValid = validateInput("r", rParamInput.value);
-    const isXValid = validateInput("x", xParamInput.value);
-    const isYValid = validateInput("y", yParamInput.value);
+    // Get current radio values from the form before submission
+    const rValue = getRadioValue('r');
+    const xValue = getRadioValue('x');
+    const yValue = yParamInput.value;
+
+    // Client-side validation for all fields
+    const isRValid = validateInput("r", rValue);
+    const isXValid = validateInput("x", xValue);
+    const isYValid = validateInput("y", yValue);
 
     if (!isRValid || !isXValid || !isYValid) {
         ev.preventDefault();
-        errorDisplay.textContent = "Please correct the input errors and ensure X/R are selected.";
+        // Display a more specific error message based on which fields failed
+        let errorMsg = "Please correct the following errors: ";
+        if (!isRValid) errorMsg += " [R must be selected]";
+        if (!isXValid) errorMsg += " [X must be selected]";
+        if (!isYValid) errorMsg += " [Y is invalid]";
+
+        errorDisplay.textContent = errorMsg.replace(': [', ': ').replace('[', ' and ').replace(']', '');
         errorDisplay.classList.add('visible');
         return;
     }
 });
 
 
-//GRAPH CLICK FUNCTIONALITY
+//--- GRAPH CLICK FUNCTIONALITY ---
 canvas.addEventListener('click', function(event) {
     errorDisplay.classList.remove('visible');
 
-    // First, check if R is set and valid from the form
-    const rValue = rParamInput.value;
+    // Get current R value from the checked radio button
+    const rValue = getRadioValue('r');
     const isRValid = validationRules.r.isValid(rValue) === true;
 
     if (!isRValid) {
@@ -337,7 +323,7 @@ canvas.addEventListener('click', function(event) {
     const xCoord = (clickX - centerX) / referenceUnit;
     const yCoord = (centerY - clickY) / referenceUnit;
 
-    // Second validation method: check if clicked point is within canvas bounds [-5, 5]
+    // Check if clicked point is within canvas bounds [-5, 5]
     if (xCoord < -5 || xCoord > 5 || yCoord < -5 || yCoord > 5) {
         errorDisplay.textContent = `Clicked point (${xCoord.toFixed(2)}, ${yCoord.toFixed(2)}) is outside the acceptable canvas range of -5 to 5.`;
         errorDisplay.classList.add('visible');
@@ -353,10 +339,10 @@ canvas.addEventListener('click', function(event) {
 });
 
 
-// Draw graph and highlight initial selections
+//--- INITIAL DRAW ---
 window.onload = () => {
     drawGraph(state.r);
 
-    // Highlight the currently selected R button
-    document.querySelector(`.r-button[data-r="${state.r.toFixed(1)}"]`)?.classList.add('selected-r');
+
+    //NB: No need to manually highlight R button; the browser handles native radio button selection.
 };
