@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import web.model.CalculationResult;
+import web.model.GlobalResultManager;
 import web.model.ResultManager;
 import java.io.IOException;
 import java.util.List;
@@ -30,10 +31,25 @@ public class ControllerServlet extends HttpServlet {
         String clearResults = request.getParameter("clear_results");
 
         if ("true".equals(clearResults)) {
-            // If the clear button was pressed, clear the session results.
+            // If the clear button was pressed, get the list of results BEFORE clearing the session data
+            List<CalculationResult> resultsToClear = ResultManager.getResults(request.getSession());
+
+            long totalToSubtract = resultsToClear.size();
+            if (totalToSubtract > 0) {
+                // Calculate the hits and misses from the user's session history
+                long hitsToSubtract = resultsToClear.stream()
+                        .filter(CalculationResult::hit) //
+                        .count();
+                long missesToSubtract = totalToSubtract - hitsToSubtract;
+
+                // Decrement the global stats counters
+                GlobalResultManager.decrementStats(hitsToSubtract, missesToSubtract, totalToSubtract);
+            }
+
+            // Clear the session data corresponding to that specific User.
             ResultManager.clearAllResults(request.getSession());
 
-            // Redirect directly to the main page after clearing.
+            // Redirect to the main page after clearing.
             response.sendRedirect(request.getContextPath() + FORM_JSP);
             return;
         }
@@ -48,7 +64,6 @@ public class ControllerServlet extends HttpServlet {
             // Request contains coordinates -> Delegate to the AreaCheckServlet.
             getServletContext().getRequestDispatcher(AREA_CHECK_SERVLET).forward(request, response);
         } else {
-            //KEY: Now  Request does NOT contain coordinates
 
             // Get the list of previous results from the session.
             List<CalculationResult> resultsList = ResultManager.getResults(request.getSession());
