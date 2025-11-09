@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.concurrent.*;
 
-// This new servlet is the real-time Server-Side Events (SSE) endpoint.
+// This new servlet is the real-time Server-Sent Events (SSE) endpoint.
 // It holds the connection open and uses a scheduler to push the global stats from the
 // GlobalResultManager to all connected clients every second.
 
