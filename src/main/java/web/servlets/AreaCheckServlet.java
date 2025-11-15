@@ -55,6 +55,10 @@ public class AreaCheckServlet extends HttpServlet {
             );
             ResultManager.saveResult(request.getSession(), newCalcResult);
 
+            // === Updates the  Global Stats ===
+            GlobalResultManager.addResult(newCalcResult);
+
+
             // Store the current result in request scope for results.jsp
             request.getSession().setAttribute("currentResult", newCalcResult);
 

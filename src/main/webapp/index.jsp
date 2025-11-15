@@ -1,6 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="custom" uri="/WEB-INF/tlds/globalstats" %>    <%-- Importing the new globalstats custom tag library --%>
 <%@ page import="web.model.CalculationResult" %>
 <%@ page import="web.model.ResultManager" %>
 <%@ page import="java.util.List" %>
@@ -95,6 +96,8 @@
             <div class="live-info-details">
                 <p>Current Time: <span id="curr-time">Loading...</span></p>
             </div>
+            <%-- Inserting the new globalstats  custom tag --%>
+            <custom:globalStats/>
         </div>
     </div>
 

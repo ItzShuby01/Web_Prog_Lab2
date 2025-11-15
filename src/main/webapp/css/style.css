@@ -372,3 +372,50 @@ input[type="text"]:focus {
         font-size: 1.6rem;
     }
 }
+
+/* --- GLOBAL STATS SECTION STYLES --- */
+.global-stats-section {
+    margin-top: 2.5rem;
+    padding-top: 2rem;
+    border-top: 0.1rem solid #4b5563; /* Separator line */
+}
+
+.global-stats-header {
+    color: #f97316;
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    text-align: left;
+    border-bottom: none; /* Override card-title style */
+}
+
+.stat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 0;
+    border-bottom: 0.1rem dashed #4b5563;
+}
+
+.stat-item:last-child {
+    border-bottom: none; /* No border for the last item */
+}
+
+.stat-item p {
+    margin: 0;
+    font-size: 1.6rem;
+}
+
+.stat-value {
+    font-weight: 700;
+    color: #f3f4f6;
+    font-size: 1.7rem;
+}
+
+.hit-stat .stat-value {
+    color: #34d399; /* Green for hits */
+}
+
+.miss-stat .stat-value {
+    color: #ef4444; /* Red for misses */
+}
