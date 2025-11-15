@@ -170,6 +170,5 @@
     window.initialR = initialRRadio ? parseFloat(initialRRadio.value) : 2.0;
 </script>
 <script src="js/script.js" type="text/javascript"></script>
-<script src="js/stats.js" type="text/javascript"></script>            <%--Loads the new SSE client script --%>
 </body>
 </html>
